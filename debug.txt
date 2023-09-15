@@ -1,0 +1,1 @@
+g++ -Wpedantic -Wshadow -Wformat=2 -Wnull-dereference -g3 -O0 -I src/include -L src/lib -c uttt.cpp -o .\build\Debug\uttt.o && g++ -Wpedantic -Wshadow -Wformat=2 -Wnull-dereference -g3 -O0 -I src/include -L src/lib   .\build\Debug\uttt.o -o .\build\Debug\outDebug.exe -lmingw32 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2

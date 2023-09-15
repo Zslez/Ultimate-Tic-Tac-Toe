@@ -1,0 +1,75 @@
+# CHANGELOG
+
+## 1.4.0
+
+This update includes a new game mode, a few changes, bug fixes and performance improvements.
+
+**New features:**
+
+-
+
+**Changes:**
+
+-
+
+**Fixes:**
+
+- fixed a bug that made possible selecting not unlocked levels in Endless Mode
+
+## 1.3.0
+
+This update includes a new game mode, a few changes, bug fixes and performance improvements.
+
+**New features:**
+
+- new *Endless game mode*: play levels you have already played at least once in the normal mode with increasing difficulty **(as for now, no data is saved about Endless games and it's not possible to resume it, so, even when you press Esc game stats are shown)**
+- now *chain combos* give bonus points, and also, points made are shown every time balls explode
+- now every *10'000* points a **new life** is added
+
+**Changes:**
+
+- now the game is in *fullscreen* (soon I'll add the possibility to switch between small and full screen)
+- moved quit button to the corner of the screen and replaced the old one with the Endless Mode button
+- *New Game* (normal mode) doesn't let you choose at which level to start anymore, just at which stage (to play the level you want you can practice it in the Endless Mode)
+- now most balls on the screen are displayed from a saved *.png* in *data/graphics*, boosting by a lot the performance of the game: this change also allows to change the graphics of the balls without editing the source code, aka it is possible to have custom graphics for balls, even though not for every ball for now **(the images are 41x41)**
+- **This version might be incompatible with old saved data:** you may still pass your high score and play normally New Game and Endless, but by clicking Resume the game might crash (now, with the new bonuses, in an average game one makes much more points, so passing the old high score is probably *useless*, **if not just to have the levels already unlocked**)
+
+**Fixes:**
+
+- fixed a problem that made the game show 2-0 as high score, instead of 2-5 when all levels were completed
+- (probably fixed, it's so rare I couldn't check) fixed a problem that made the game ignore explosions if they had to happen in the same frame of another contact of balls
+- a small graphic fix in level selection
+
+## 1.2.0
+
+This update includes new interfaces and a few changes.
+
+**New features:**
+
+- added a new *How To Play* interface that explains the commands and the rules of the game when playing for the first time
+- added a new interface to choose at which level to start playing a new game among the unlocked ones
+
+**Changes:**
+
+- now each stage has a different background color
+- other minor changes and fixes :D
+
+## 1.1.0
+
+This update includes new levels, a slightly better physics, a couple of bug fixes and little performance improvements.
+
+**New features:**
+
+- added 2 new levels, for a total of 10, now divided in 2 different stages
+- added a new factor to the speed changes of the balls, making the game more dynamic
+
+**Fixes:**
+
+- compiled the *.exe* to a *Win32 app* so it doesn't show the console anymore
+- fixed a bug that made the game not reset the main menu and saved data when the new score was less than the high score
+- fixed a bug that made the flow of balls not go backwards if it had only 1 ball in it
+- changed some variables in existing levels to balance the difficulty
+
+## 1.0.0
+
+First release
