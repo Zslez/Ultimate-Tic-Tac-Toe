@@ -11,7 +11,6 @@
 # ignore single files
 
 cloc_to_md.py
-structure.txt
 
 # ignore folders
 
@@ -23,7 +22,6 @@ build
 
 dist
 game.zip
-level2image
 
 # ignore test files
 
@@ -32,29 +30,9 @@ test.*
 # ignore not used data files
 
 data/*
-data/fonts/*
-data/saves/*
 
-# ignore not implemented stuff
+# unignore used data files and folders
 
-menus/user_menu.h
-
-# unignore necessary binary files
-
-!level2image.exe
-
-# unignore used data folders
-
-!data/levels
-!data/levels/stage_1/*
-!data/levels/stage_2/*
-!data/levels/stage_3/*
-!data/fonts
-!data/saves
-!data/saves/user
-!data/graphics
-!data/graphics/*
-
-# unignore used data files
-
-!data/fonts/SugarSnow.ttf
+!data/images
+!data/images/*
+!data/fonts/*
