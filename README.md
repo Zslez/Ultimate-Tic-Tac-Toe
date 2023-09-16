@@ -1,20 +1,26 @@
 # Ultimate Tic-Tac-Toe
 
-Ultimate Tic-Tac-Toe game coded in C++, with a MiniMax algorithm computer opponent that is currently able to defeat the Medium difficulty of the AI on [this website](https://michaelxing.com/UltimateTTT/v3/).
+Ultimate Tic-Tac-Toe game coded in C++, with a MiniMax algorithm computer opponent that is currently able to defeat (not always though[*](#tests)) the Medium difficulty of the AI on [this website](https://michaelxing.com/UltimateTTT/v3/).
 
 In the `game` folder there is also a `game 3x3.h` file, that I used to first try the MiniMax algorithm on the simpler standard version of Tic-Tac-Toe.
 
-## Used Libraries
+## Changelog
 
-- `SDL2`
-- `SDL_image`
-- `SDL_ttf`
+See [here](.\CHANGELOG).
+
+## Tests
+
+**Version 1.0 Analysis**:
+
+- Out of `10` consecutive games played as X against the Medium difficulty of Xing's `AI` it scored `4W/2D/4L`
+- With `7` as search depth, the average move takes around `1.5 seconds` to compute, however the algorithm has sometimes peaks of more than `20 seconds` for a move, usually around the middle of the game, when a few small boards get completed
 
 ## To-Do List
 
 - [ ] allow the player to choose whether to play as X or O
 - [ ] improve the MiniMax algorithm in general, allowing it to perform deeper searches
 - [ ] improve the evaluation algorithm, as for now it is quite basic
+- [ ] add time limit to moves, picking the best found at that point
 
 ## Bug Fixes
 
