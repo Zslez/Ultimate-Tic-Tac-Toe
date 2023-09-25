@@ -33,6 +33,7 @@ class TempGame {
 
 
 
+
     std::vector<int> GetAvailableMoves() {
         std::vector<int> moves;
 
@@ -50,59 +51,6 @@ class TempGame {
 
         return moves;
     }
-
-
-
-
-
-    // I thought maybe to value more the boards who are needed to one of the sides to win,
-    // but this was much slower because it needed to loop through all the empty boards instead of all the completed ones.
-    // Also, I'm not sure it actually works as intended and wheather it improves the Bot playing
-
-    /*
-    std::vector<int> GetSmallBoardValues2() {
-        std::vector<int> newSmallBoardsPoints = smallBoardPointsBase;
-
-        // for each small board in the game
-
-        for (int i = 0; i < 9; i++) {
-
-            // if the small board is not completed
-
-            if (smallBoards[i] == -1) {
-
-                // find wheather the small board can help any of the players win or it is less useful to complete
-
-                for (std::vector<int> combination : bigBoardWinMap) {
-                    if (Contains(combination, i)) {
-                        //bool isBadCombination = false;
-
-                        // for each combination check if at least one of its boards is already taken by the opponent
-                        // and if so, mark the combination as bad, as the moving player cannot win through it
-
-                        /*for (int j : combination) {
-                            if (smallBoards[j] == player) {
-                                isBadCombination = true;
-                            }
-                        }
-
-                        if (smallBoards[combination[0]] +
-                            smallBoards[combination[1]] +
-                            smallBoards[combination[2]] == 0) newSmallBoardsPoints[i] -= 10;
-                        else newSmallBoardsPoints[i] += 10;
-
-                        // increase or decrease the value of each board based on whether the combination is good or bad
-
-                        /*for (int j : combination) {
-                            newSmallBoardsPoints[i] += 5 * (isBadCombination ? -1 : 1);
-                        }
-                    }
-                }
-            }
-        }
-
-        return newSmallBoardsPoints;
-    }*/
 
 
 
@@ -130,14 +78,13 @@ class TempGame {
                         for (int j : combination) {
                             if (smallBoards[j] == 1 - movingPlayer) {
                                 isBadCombination = true;
+                                break;
                             }
                         }
 
                         // increase or decrease the value of each board based on whether the combination is good or bad
 
-                        for (int j : combination) {
-                            newSmallBoardsPoints[i] += 5 * (isBadCombination ? -1 : 1);
-                        }
+                        newSmallBoardsPoints[i] += 10 * (isBadCombination ? -1 : 1);
                     }
                 }
             }
@@ -185,13 +132,52 @@ class TempGame {
             else if (smallBoards[i] == 1) positionJudgement -= smallBoardValues[i];
         }
 
+        // check if last played move blocked a tris
+        // this slows down the algorithm a lot, and I'm not even sure whether it actually improves the evaluation...
+
+        /*for (std::vector<int> winCombination : getSmallWinMap(smallBoardOfLastMove)) {
+            if (Contains(winCombination, lastMove)) {
+                if (
+                    board[winCombination[0]] == -1
+                 || board[winCombination[1]] == -1
+                 || board[winCombination[2]] == -1
+                ) continue;
+
+                int sum = board[winCombination[0]] + board[winCombination[1]] + board[winCombination[2]];
+                if (sum == 2) positionJudgement += 5;
+                if (sum == 1) positionJudgement -= 5;
+            }
+        }*/
+
+        // adds points based on where the last move was made
+        // this slows down the algorithm a little, and I'm not even sure whether it actually improves the evaluation...
+
+        /*int pos = smallBoardsNextMap[lastMove];
+
+        if (!(isPlayerTurn && player)) {
+            std::cout << "asjhdjfhsdkfsdj" << std::endl;
+            if (pos == 0 || pos == 2 || pos == 6 || pos == 8) positionJudgement += 3;
+            else if (pos == 1 || pos == 3 || pos == 5 || pos == 7) positionJudgement += 2;
+            else positionJudgement += 4;
+        } else {
+            std::cout << "sudysysad" << std::endl;
+            if (pos == 0 || pos == 2 || pos == 6 || pos == 8) positionJudgement -= 3;
+            else if (pos == 1 || pos == 3 || pos == 5 || pos == 7) positionJudgement -= 2;
+            else positionJudgement -= 4;
+        }*/
+
+        for (int i = 0; i < 81; i++) {
+            if (board[i] == 0) positionJudgement += pointsMap[i];
+            else if (board[i] == 1) positionJudgement -= pointsMap[i];
+        }
+
         return positionJudgement;
     }
 
 
 
 
-    int MiniMax(int move, int depth, int alpha, int beta, int maximisingPlayer) {
+    int MiniMax(int move, int depth, int alpha, int beta, bool maximisingPlayer) {
         TempGame tempGame(board, smallBoards, lastMove, player);
         tempGame.MakeMove(maximisingPlayer, move);
 
@@ -213,6 +199,10 @@ class TempGame {
 
         std::vector<int> possibleMoves = tempGame.GetAvailableMoves();
 
+        // maybe this correctly checks for draws? I haven't noticed any improvement though...
+
+        if (possibleMoves.size() == 0) return 0;
+
 
         // next MiniMax iteration
         // it loops through each move and calls MiniMax on the newly created instance of TempGame
@@ -226,8 +216,7 @@ class TempGame {
             int maxEval = -INFINITYVALUE;
 
             for (int i : possibleMoves) {
-                int result = tempGame.MiniMax(i, depth - 1, alpha, beta, 1 - maximisingPlayer);
-                maxEval = std::max(maxEval, result);
+                maxEval = std::max(maxEval, tempGame.MiniMax(i, depth - 1, alpha, beta, !maximisingPlayer));
                 alpha = std::max(alpha, maxEval);
 
                 if (beta <= alpha) break;
@@ -238,8 +227,7 @@ class TempGame {
             int minEval = INFINITYVALUE;
 
             for (int i : possibleMoves) {
-                int result = tempGame.MiniMax(i, depth - 1, alpha, beta, 1 - maximisingPlayer);
-                minEval = std::min(minEval, result);
+                minEval = std::min(minEval, tempGame.MiniMax(i, depth - 1, alpha, beta, !maximisingPlayer));
                 beta = std::min(beta, minEval);
 
                 if (beta <= alpha) break;
@@ -264,7 +252,7 @@ class TempGame {
         // this stores the small board in which the current player just moved
         // I tried to improve this calculation, but I just made the game not recognise completed boards anymore...
 
-        smallBoardOfLastMove = 3 * (move / 27) + (move % 9) / 3;
+        smallBoardOfLastMove = smallBoardsPrevMap[move];
 
 
         // check if the small board is won by player
@@ -279,10 +267,6 @@ class TempGame {
             }
         } else if (IsSmallBoardDraw()) {
             smallBoards[smallBoardOfLastMove] = 2;
-
-            for (int i : smallBoardsInverseMap[smallBoardOfLastMove]) {
-                if (board[i] == -1) board[i] = 2;
-            }
         }
 
 

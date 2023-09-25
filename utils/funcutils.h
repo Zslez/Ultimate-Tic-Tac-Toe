@@ -29,6 +29,23 @@ bool IsSubset(std::vector<T> A, std::vector<T> B) {
 
 
 
+// game functions
+
+std::vector< std::vector<int> > getSmallWinMap(int lastMoveBoard) {
+    int num = 3 * (lastMoveBoard % 3) + 27 * (lastMoveBoard / 3);
+
+    std::vector< std::vector<int> > winMap;
+
+    for (std::vector<int> comb : smallBoardWinMap) {
+        winMap.push_back({comb[0] + num, comb[1] + num, comb[2] + num});
+    }
+
+    return winMap;
+}
+
+
+
+
 // functions
 
 std::string BoardToString(std::array<int, 81> position) {

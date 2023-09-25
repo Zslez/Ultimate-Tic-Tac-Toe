@@ -6,11 +6,19 @@ compileconsole:
 	@g++ -I src/include -L src/lib -o uttt uttt.cpp -lmingw32 -lcrypto -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic
 
 
+compileprofile:
+	@g++ -I src/include -L src/lib -o uttt uttt.cpp -lmingw32 -lcrypto -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic -g -pg
+
+
 run:
 	@.\uttt
 
 
 all: compileconsole run
+
+
+profile: compileprofile run
+	gprof uttt.exe gmon.out > output.txt
 
 
 distribute: compile

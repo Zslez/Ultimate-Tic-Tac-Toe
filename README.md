@@ -1,6 +1,6 @@
 # Ultimate Tic-Tac-Toe
 
-Ultimate Tic-Tac-Toe game coded in C++, with a MiniMax algorithm computer opponent that is currently able to defeat (not always though[*](#tests)) the Medium difficulty of the AI on [this website](https://michaelxing.com/UltimateTTT/v3/).
+Ultimate Tic-Tac-Toe game coded in C++, with a MiniMax algorithm computer opponent that is currently able to defeat (not always though[*](#tests-and-analysis)) the Medium difficulty of the AI on [this website](https://michaelxing.com/UltimateTTT/v3/).
 
 In the `game` folder there is also a `game 3x3.h` file, that I used to first try the MiniMax algorithm on the simpler standard version of Tic-Tac-Toe.
 
@@ -8,9 +8,9 @@ In the `game` folder there is also a `game 3x3.h` file, that I used to first try
 
 See [here](.\CHANGELOG).
 
-## Tests
+## Tests and Analysis
 
-**Version 1.0 Analysis**:
+**Version 1.0**:
 
 - Out of `10` consecutive games played as X against the Medium difficulty of Xing's `AI` it scored `4W/2D/4L`
 - With `7` as search depth, the average move takes around `1.5 seconds` to compute, however the algorithm has sometimes peaks of more than `20 seconds` for a move, usually around the middle of the game, when a few small boards get completed
@@ -27,7 +27,7 @@ See [here](.\CHANGELOG).
 No particular bug was encountered so far.
 Report one by contacting me in any way.
 
-## CLOC Stats
+## [CLOC](https://github.com/AlDanial/cloc) Stats
 
 | Language | files | blank | comment | code |
 | --- | --- | --- | --- | --- |

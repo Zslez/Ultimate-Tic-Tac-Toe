@@ -21,10 +21,6 @@
 #include <thread>
 #include <chrono>
 
-#include <openssl/conf.h>
-#include <openssl/evp.h>
-#include <openssl/err.h>
-
 // include SDL
 
 #include <SDL2/SDL_image.h>
@@ -53,7 +49,6 @@
 
 #include "game/tempgame.h"
 #include "game/game.h"
-//#include "game/game 3x3.h"
 #include "menus/main_menu.h"
 
 

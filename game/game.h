@@ -52,6 +52,7 @@ class Game {
 
     int gameIsOver = -1;
     int lastEval = 0;
+    int movingTime = 0;
 
     // transposition table: {board string, value}
     // poor failed attempt, I sadly couldn't figure out how to make it work properly
@@ -183,7 +184,7 @@ class Game {
         // tried to make something like the chess.com evaluation bar (💀) but dropped it,
         // nonetheless it was helpful to see in real time how the Bot was evaluating the position to spot bugs
 
-        /*COLORTYPE winningPlayerColor = (lastEval != 0) ? ((lastEval > 0) ? HRED : HBLUE) : AWHITE;
+        COLORTYPE winningPlayerColor = (lastEval != 0) ? ((lastEval > 0) ? HRED : HBLUE) : AWHITE;
         SDL_Color winningPlayerSDLColor = (lastEval != 0) ? ((lastEval > 0) ? SDL_HRED : SDL_HBLUE) : SDL_AWHITE;
 
         std::stringstream ss;
@@ -193,7 +194,7 @@ class Game {
             : ("W" + std::to_string(MAXSEARCHDEPTH - std::abs(lastEval) + WINVALUE)).c_str();
 
         DisplayTextFromCenter(txt, winningPlayerSDLColor, tinyFont, -boardSize / 2 - 60, 0);
-        DrawRectFromCenter(-boardSize / 2 - 40, 0, borderLineW + 2, boardSize + borderLineW, winningPlayerColor, true);*/
+        DrawRectFromCenter(-boardSize / 2 - 40, 0, borderLineW + 2, boardSize + borderLineW, winningPlayerColor, true);
 
 
         // render everything
@@ -322,6 +323,12 @@ class Game {
                 MakeMove(player, hoveredCell);
                 lastMove = hoveredCell;
                 turn = 1 - turn;
+
+                // checks if the game is drawn
+
+                if (GetAvailableMoves().size() == 0 && gameIsOver == -1) {
+                    gameIsOver = 2;
+                }
             }
         } else if (event.button.button == SDL_BUTTON_RIGHT) {
             // --
@@ -419,6 +426,8 @@ class Game {
 
         std::vector<int> possibleMoves = tempGame.GetAvailableMoves();
 
+        if (possibleMoves.size() == 0) return 0;
+
         if (maximisingPlayer) {
             int maxEval = -INFINITYVALUE;
 
@@ -489,6 +498,8 @@ class Game {
     void CalculateMoveWOIterativeDeepening() {
         // this is the old version of the function, before implementing iterative deepening and sorting moves
 
+        auto start = std::chrono::system_clock::now();
+
         std::vector<int> possibleMoves = GetAvailableMoves();
 
         int bestMove;
@@ -513,6 +524,11 @@ class Game {
 
         computerIsMoving = false;
         turn = 1 - turn;
+
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end-start;
+
+        std::cout << elapsed_seconds.count() << std::endl;
     }
 
 
@@ -582,6 +598,8 @@ class Game {
 
         computerIsMoving = false;
         turn = 1 - turn;
+
+        // print time needed to move
 
         auto end = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_seconds = end-start;
@@ -660,8 +678,6 @@ class Game {
 
             // update screen
 
-            timeElapsed++;
-
             if (gameIsOver == -1) {
                 Update();
 
@@ -669,9 +685,19 @@ class Game {
                 // start thread of computer move
 
                 if (turn != player && !computerIsMoving) {
-                    std::thread computerMove(CalculateMove, this);
+                    std::thread computerMove(CalculateMoveWOIterativeDeepening, this);
                     computerMove.detach();
                     computerIsMoving = true;
+                    movingTime = 0;
+                    abortSearch = false;
+                } else if (turn != player && computerIsMoving) {
+                    movingTime++;
+
+                    // for now this variable doesn't really do anything.
+                    // I added this system to detect when the time limit is reached,
+                    // but the algorithm still has nothing related to the variable
+
+                    if (movingTime == maxTime * SECOND) abortSearch = true;
                 }
 
 
