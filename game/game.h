@@ -53,6 +53,7 @@ class Game {
     int gameIsOver = -1;
     int lastEval = 0;
     int movingTime = 0;
+    int currentMove = 0;
 
     // transposition table: {board string, value}
     // poor failed attempt, I sadly couldn't figure out how to make it work properly
@@ -116,7 +117,7 @@ class Game {
         // highlight the hovered cell
 
         if (MouseIsInsideBoard()) {
-            hoveredCell = ((mousey - bordery) / cellSize) * 9 + ((mousex - borderx) / cellSize);
+            hoveredCell = boardMap[((mousey - bordery) / cellSize) * 9 + ((mousex - borderx) / cellSize)];
 
             if (turn == player && board[hoveredCell] == -1) {
                 if (PlayerIsHoveringValidCell()) {
@@ -132,12 +133,14 @@ class Game {
         }
 
 
-        // highlight last computer move
+        // highlight last move
 
         if (lastMove != -1) {
+            int cell = boardMap[lastMove];
+
             DrawRectFromOrigin(
-                borderx + cellSize * (lastMove % 9),
-                bordery + cellSize * (lastMove / 9),
+                borderx + cellSize * (cell % 9),
+                bordery + cellSize * (cell / 9),
                 cellSize, cellSize, HCYAN, true
             );
         }
@@ -164,8 +167,10 @@ class Game {
         for (int i = 0; i < 81; i++) {
             if (board[i] == -1) continue;
 
-            rect.x = borderx + cellSize * (i % 9) + 5;
-            rect.y = bordery + cellSize * (i / 9) + 5;
+            int cell = boardMap[i];
+
+            rect.x = borderx + cellSize * (cell % 9) + 5;
+            rect.y = bordery + cellSize * (cell / 9) + 5;
             rect.w = cellSize - 10;
             rect.h = cellSize - 10;
 
@@ -184,7 +189,7 @@ class Game {
         // tried to make something like the chess.com evaluation bar (💀) but dropped it,
         // nonetheless it was helpful to see in real time how the Bot was evaluating the position to spot bugs
 
-        COLORTYPE winningPlayerColor = (lastEval != 0) ? ((lastEval > 0) ? HRED : HBLUE) : AWHITE;
+        /*COLORTYPE winningPlayerColor = (lastEval != 0) ? ((lastEval > 0) ? HRED : HBLUE) : AWHITE;
         SDL_Color winningPlayerSDLColor = (lastEval != 0) ? ((lastEval > 0) ? SDL_HRED : SDL_HBLUE) : SDL_AWHITE;
 
         std::stringstream ss;
@@ -194,7 +199,7 @@ class Game {
             : ("W" + std::to_string(MAXSEARCHDEPTH - std::abs(lastEval) + WINVALUE)).c_str();
 
         DisplayTextFromCenter(txt, winningPlayerSDLColor, tinyFont, -boardSize / 2 - 60, 0);
-        DrawRectFromCenter(-boardSize / 2 - 40, 0, borderLineW + 2, boardSize + borderLineW, winningPlayerColor, true);
+        DrawRectFromCenter(-boardSize / 2 - 40, 0, borderLineW + 2, boardSize + borderLineW, winningPlayerColor, true);*/
 
 
         // render everything
@@ -238,15 +243,15 @@ class Game {
         }
 
 
-        // highlight last computer move
+        // highlight last move
 
-        if (turn == player && lastMove != -1) {
-            DrawRectFromOrigin(
-                borderx + cellSize * (lastMove % 9),
-                bordery + cellSize * (lastMove / 9),
-                cellSize, cellSize, HCYAN, true
-            );
-        }
+        int cell = boardMap[lastMove];
+
+        DrawRectFromOrigin(
+            borderx + cellSize * (cell % 9),
+            bordery + cellSize * (cell / 9),
+            cellSize, cellSize, HCYAN, true
+        );
 
 
         // display board
@@ -270,8 +275,10 @@ class Game {
         for (int i = 0; i < 81; i++) {
             if (board[i] == -1) continue;
 
-            rect.x = borderx + cellSize * (i % 9) + 5;
-            rect.y = bordery + cellSize * (i / 9) + 5;
+            int cell = boardMap[i];
+
+            rect.x = borderx + cellSize * (cell % 9) + 5;
+            rect.y = bordery + cellSize * (cell / 9) + 5;
             rect.w = cellSize - 10;
             rect.h = cellSize - 10;
 
@@ -299,7 +306,7 @@ class Game {
 
 
     bool PlayerIsHoveringValidCell() {
-        return (smallBoardSelected != -1 && Contains(smallBoardsInverseMap[smallBoardSelected], hoveredCell))
+        return (smallBoardSelected != -1 && hoveredCell >= smallBoardSelected * 9 && hoveredCell < (smallBoardSelected + 1) * 9)
                 || smallBoardSelected == -1;
     }
 
@@ -319,10 +326,11 @@ class Game {
         // PLAYER MOVE IS MADE HERE
 
         if (event.button.button == SDL_BUTTON_LEFT) {
-            if (turn == player && PlayerIsHoveringValidCell() && hoveredCell != -1 && board[hoveredCell] == -1) {
+            if (turn == player && PlayerIsHoveringValidCell() && board[hoveredCell] == -1) {
                 MakeMove(player, hoveredCell);
                 lastMove = hoveredCell;
                 turn = 1 - turn;
+                currentMove++;
 
                 // checks if the game is drawn
 
@@ -346,9 +354,8 @@ class Game {
 
         board[move] = playerThatMoves;
 
-        smallBoardSelected = smallBoardsNextMap[move];
-
-        smallBoardOfLastMove = 3 * (move / 27) + (move % 9) / 3;
+        smallBoardSelected = move % 9;
+        smallBoardOfLastMove = move / 9;
 
 
         // check if the small board is won by player
@@ -358,13 +365,13 @@ class Game {
 
             // mark all cells in that board as not selectable
 
-            for (int i : smallBoardsInverseMap[smallBoardOfLastMove]) {
+            for (int i = smallBoardOfLastMove * 9; i < (smallBoardOfLastMove + 1) * 9; i++) {
                 if (board[i] == -1) board[i] = 2;
             }
         } else if (IsSmallBoardDraw()) {
             smallBoards[smallBoardOfLastMove] = 2;
 
-            for (int i : smallBoardsInverseMap[smallBoardOfLastMove]) {
+            for (int i = smallBoardOfLastMove * 9; i < (smallBoardOfLastMove + 1) * 9; i++) {
                 if (board[i] == -1) board[i] = 2;
             }
         }
@@ -390,7 +397,7 @@ class Game {
         std::vector<int> moves;
 
         if (smallBoardSelected != -1) {
-            for (int i : smallBoardsInverseMap[smallBoardSelected]) {
+            for (int i = smallBoardSelected * 9; i < (smallBoardSelected + 1) * 9; i++) {
                 if (board[i] == -1) moves.push_back(i);
             }
         } else {
@@ -415,15 +422,6 @@ class Game {
         if (depth == 0 || tempGame.gameIsOver != -1) return tempGame.EvaluatePosition(depth);
 
 
-        // check position in transposition table
-
-        /*std::unordered_map<std::string, int>::iterator it = transpositionTable.find(BoardToString(tempGame.board));
-
-        if (it != transpositionTable.end()) {
-            return it->second;
-        }*/
-
-
         std::vector<int> possibleMoves = tempGame.GetAvailableMoves();
 
         if (possibleMoves.size() == 0) return 0;
@@ -439,10 +437,6 @@ class Game {
                 if (beta <= alpha) break;
             }
 
-            // add position to transposition table
-
-            //transpositionTable[BoardToString(tempGame.board)] = maxEval;
-
             return maxEval;
         } else {
             int minEval = INFINITYVALUE;
@@ -456,39 +450,7 @@ class Game {
 
             }
 
-            // add position to transposition table
-
-            //transpositionTable[BoardToString(tempGame.board)] = minEval;
-
             return minEval;
-        }
-    }
-
-
-
-
-    void PrintBoard() {
-        std::cout << "\n" << std::endl;
-
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                if (board[9 * i + j] == -1 || board[9 * i + j] == 2) std::cout << "_ ";
-                else if (board[9 * i + j] == 0) std::cout << "X ";
-                else if (board[9 * i + j] == 1) std::cout << "O ";
-            }
-
-            std::cout << "\n";
-        }
-    }
-
-
-
-
-    void PrintMap(std::vector< std::pair<int, int> > map) {
-        std::cout << "\n" << std::endl;
-
-        for (auto const &i : map) {
-            std::cout << i.first << " " << i.second << std::endl;
         }
     }
 
@@ -499,6 +461,26 @@ class Game {
         // this is the old version of the function, before implementing iterative deepening and sorting moves
 
         auto start = std::chrono::system_clock::now();
+
+        // play instantly the first move
+
+        if (currentMove == 0) {
+            MakeMove(1 - player, 0);
+            lastMove = 0;
+            lastEval = 0;
+            currentMove++;
+
+            computerIsMoving = false;
+            turn = 1 - turn;
+
+            auto end = std::chrono::system_clock::now();
+            std::chrono::duration<double> elapsed_seconds = end-start;
+
+            std::cout << elapsed_seconds.count() << std::endl;
+            return;
+        }
+
+        // main algorithm
 
         std::vector<int> possibleMoves = GetAvailableMoves();
 
@@ -519,8 +501,12 @@ class Game {
             }
         }
 
+        // make move and pass turn
+
         MakeMove(1 - player, bestMove);
         lastMove = bestMove;
+        lastEval = bestMoveValue;
+        currentMove++;
 
         computerIsMoving = false;
         turn = 1 - turn;
@@ -583,15 +569,12 @@ class Game {
             } else {
                 std::sort(movesMap.begin(), movesMap.end(), [](auto &left, auto &right) {return left.second > right.second;});
             }
-
-            // clear transposition table
-
-            //transpositionTable.clear();
         }
 
         MakeMove(1 - player, bestMove);
         lastMove = bestMove;
         lastEval = bestMoveValue;
+        currentMove++;
 
 
         // pass turn to player
@@ -614,11 +597,11 @@ class Game {
         // maybe there is a clean way to merge the two functions in TempGame and this class?
         // they're exactly the same... read description on the other one
 
-        for (std::vector<int> winCombination : smallBoardWinMap) {
+        for (std::vector<int> winCombination : winMap) {
             if (
-                board[winCombination[0] + 3 * (smallBoardOfLastMove % 3) + 27 * (smallBoardOfLastMove / 3)] == playerSymbol
-             && board[winCombination[1] + 3 * (smallBoardOfLastMove % 3) + 27 * (smallBoardOfLastMove / 3)] == playerSymbol
-             && board[winCombination[2] + 3 * (smallBoardOfLastMove % 3) + 27 * (smallBoardOfLastMove / 3)] == playerSymbol
+                board[winCombination[0] + 9 * smallBoardOfLastMove] == playerSymbol
+             && board[winCombination[1] + 9 * smallBoardOfLastMove] == playerSymbol
+             && board[winCombination[2] + 9 * smallBoardOfLastMove] == playerSymbol
             ) return true;
         }
 
@@ -632,7 +615,7 @@ class Game {
         // maybe there is a clean way to merge the two functions in TempGame and this class?
         // they're exactly the same... read description on the other one
 
-        for (std::vector<int> winCombination : bigBoardWinMap) {
+        for (std::vector<int> winCombination : winMap) {
             if (
                 smallBoards[winCombination[0]] == playerSymbol
              && smallBoards[winCombination[1]] == playerSymbol
@@ -650,7 +633,7 @@ class Game {
         // maybe there is a clean way to merge the two functions in TempGame and this class?
         // they're exactly the same... read description on the other one
 
-        for (int i : smallBoardsInverseMap[smallBoardOfLastMove]) {
+        for (int i = smallBoardOfLastMove * 9; i < (smallBoardOfLastMove + 1) * 9; i++) {
             if (board[i] == -1) return false;
         }
 
@@ -674,6 +657,7 @@ class Game {
             CLOCK.Tick();
             //std::cout << "\r" << CLOCK.GetFPSWithoutLimit() << "   ";
             //std::cout << "\r" << FormatTime(timeElapsed) << "    ";
+            //std::cout << "\r" << lastMove << "    ";
 
 
             // update screen

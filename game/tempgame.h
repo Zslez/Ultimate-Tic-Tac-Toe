@@ -40,7 +40,7 @@ class TempGame {
         // if smallBoardSelected is -1 it means that the player can choose a move in every board
 
         if (smallBoardSelected != -1) {
-            for (int i : smallBoardsInverseMap[smallBoardSelected]) {
+            for (int i = smallBoardSelected * 9; i < (smallBoardSelected + 1) * 9; i++) {
                 if (board[i] == -1) moves.push_back(i);
             }
         } else {
@@ -68,7 +68,7 @@ class TempGame {
 
                 // find the other small boards that player needs to make a tris and win
 
-                for (std::vector<int> combination : bigBoardWinMap) {
+                for (std::vector<int> combination : winMap) {
                     if (Contains(combination, i)) {
                         bool isBadCombination = false;
 
@@ -131,40 +131,6 @@ class TempGame {
             if (smallBoards[i] == 0) positionJudgement += smallBoardValues[i];
             else if (smallBoards[i] == 1) positionJudgement -= smallBoardValues[i];
         }
-
-        // check if last played move blocked a tris
-        // this slows down the algorithm a lot, and I'm not even sure whether it actually improves the evaluation...
-
-        /*for (std::vector<int> winCombination : getSmallWinMap(smallBoardOfLastMove)) {
-            if (Contains(winCombination, lastMove)) {
-                if (
-                    board[winCombination[0]] == -1
-                 || board[winCombination[1]] == -1
-                 || board[winCombination[2]] == -1
-                ) continue;
-
-                int sum = board[winCombination[0]] + board[winCombination[1]] + board[winCombination[2]];
-                if (sum == 2) positionJudgement += 5;
-                if (sum == 1) positionJudgement -= 5;
-            }
-        }*/
-
-        // adds points based on where the last move was made
-        // this slows down the algorithm a little, and I'm not even sure whether it actually improves the evaluation...
-
-        /*int pos = smallBoardsNextMap[lastMove];
-
-        if (!(isPlayerTurn && player)) {
-            std::cout << "asjhdjfhsdkfsdj" << std::endl;
-            if (pos == 0 || pos == 2 || pos == 6 || pos == 8) positionJudgement += 3;
-            else if (pos == 1 || pos == 3 || pos == 5 || pos == 7) positionJudgement += 2;
-            else positionJudgement += 4;
-        } else {
-            std::cout << "sudysysad" << std::endl;
-            if (pos == 0 || pos == 2 || pos == 6 || pos == 8) positionJudgement -= 3;
-            else if (pos == 1 || pos == 3 || pos == 5 || pos == 7) positionJudgement -= 2;
-            else positionJudgement -= 4;
-        }*/
 
         for (int i = 0; i < 81; i++) {
             if (board[i] == 0) positionJudgement += pointsMap[i];
@@ -247,12 +213,11 @@ class TempGame {
 
         // this stores the small board in which the next player will have to move
 
-        smallBoardSelected = smallBoardsNextMap[move];
+        smallBoardSelected = move % 9;
 
         // this stores the small board in which the current player just moved
-        // I tried to improve this calculation, but I just made the game not recognise completed boards anymore...
 
-        smallBoardOfLastMove = smallBoardsPrevMap[move];
+        smallBoardOfLastMove = move / 9;
 
 
         // check if the small board is won by player
@@ -262,7 +227,7 @@ class TempGame {
 
             // mark all cells in that board as not selectable
 
-            for (int i : smallBoardsInverseMap[smallBoardOfLastMove]) {
+            for (int i = smallBoardOfLastMove * 9; i < (smallBoardOfLastMove + 1) * 9; i++) {
                 if (board[i] == -1) board[i] = 2;
             }
         } else if (IsSmallBoardDraw()) {
@@ -288,13 +253,12 @@ class TempGame {
 
     bool IsSmallBoardWon(int playerSymbol) {
         // this loops through all possible small baords win combinations and checks whether the player has all three of the cells
-        // maybe this can be improved?
 
-        for (std::vector<int> winCombination : smallBoardWinMap) {
+        for (std::vector<int> winCombination : winMap) {
             if (
-                board[winCombination[0] + 3 * (smallBoardOfLastMove % 3) + 27 * (smallBoardOfLastMove / 3)] == playerSymbol
-             && board[winCombination[1] + 3 * (smallBoardOfLastMove % 3) + 27 * (smallBoardOfLastMove / 3)] == playerSymbol
-             && board[winCombination[2] + 3 * (smallBoardOfLastMove % 3) + 27 * (smallBoardOfLastMove / 3)] == playerSymbol
+                board[winCombination[0] + 9 * smallBoardOfLastMove] == playerSymbol
+             && board[winCombination[1] + 9 * smallBoardOfLastMove] == playerSymbol
+             && board[winCombination[2] + 9 * smallBoardOfLastMove] == playerSymbol
             ) return true;
         }
 
@@ -308,7 +272,7 @@ class TempGame {
         // this simply checks if there are no more moves in the board in which the player just moved
         // if it finds one that is still -1, then the small board is still playable
 
-        for (int i : smallBoardsInverseMap[smallBoardOfLastMove]) {
+        for (int i = smallBoardOfLastMove * 9; i < (smallBoardOfLastMove + 1) * 9; i++) {
             if (board[i] == -1) return false;
         }
 
@@ -321,7 +285,7 @@ class TempGame {
     bool IsGameWon(int playerSymbol) {
         // this loops through all possible big board win combinations and checks whether the player has all three of the boards
 
-        for (std::vector<int> winCombination : bigBoardWinMap) {
+        for (std::vector<int> winCombination : winMap) {
             if (
                 smallBoards[winCombination[0]] == playerSymbol
              && smallBoards[winCombination[1]] == playerSymbol
