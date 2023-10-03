@@ -1,24 +1,56 @@
+# VARIOUS COMPILE OPTIONS FOR UTTT.CPP
+
+
+
+
 compile:
-	@g++ -I src/include -L src/lib -o uttt uttt.cpp -lmingw32 -lcrypto -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic -mwindows
+	@g++ -I src/include -L src/lib -o uttt uttt.cpp -lmingw32 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic -mwindows
+
 
 
 compileconsole:
-	@g++ -I src/include -L src/lib -o uttt uttt.cpp -lmingw32 -lcrypto -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic
+	@g++ -I src/include -L src/lib -o uttt uttt.cpp -lmingw32 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic
+
 
 
 compileprofile:
-	@g++ -I src/include -L src/lib -o uttt uttt.cpp -lmingw32 -lcrypto -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic -g -pg
+	@g++ -I src/include -L src/lib -o uttt uttt.cpp -lmingw32 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2 -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic -g -pg
+
 
 
 run:
 	@.\uttt
 
 
+
 all: compileconsole run
+
 
 
 profile: compileprofile run
 	gprof uttt.exe gmon.out > output.txt
+
+
+
+
+# COMPILE OPTIONS FOR NEXTMOVE.CPP
+
+
+
+
+compilenext:
+	cd NextMove && @g++ -o nextmove nextmove.cpp && cd ..
+
+
+
+next: compilenext
+
+
+
+
+# DISTRIBUTION
+
+
 
 
 distribute: compile
@@ -34,9 +66,12 @@ distribute: compile
 	@XCOPY /S /I /Y /Q data dist\data
 
 
+
+
+# OTHERS
+
+
+
+
 cloc:
 	@cloc --exclude-dir=build,src,saves,dist,.vscode . --exclude-lang=Python,Markdown,make,XML,HTML
-
-
-l2i:
-	@pyinstaller -F level2image.py --distpath .

@@ -10,6 +10,12 @@ See [here](.\CHANGELOG).
 
 ## Tests and Analysis
 
+**Version 1.1**:
+
+- The new algorithm managed to defeat the Hard difficulty of Xing's `AI` once, and draw twice
+- Out of `6` consecutive games played as X against the Medium difficulty of Xing's `AI` it scored `3W/1D/2L`
+- With only `6` as search depth but an improved evaluation sistem, the average move takes around `3 seconds` to compute, but it appears to be much stronger than earlier
+
 **Version 1.0**:
 
 - Out of `10` consecutive games played as X against the Medium difficulty of Xing's `AI` it scored `4W/2D/4L`
@@ -17,10 +23,12 @@ See [here](.\CHANGELOG).
 
 ## To-Do List
 
-- [ ] allow the player to choose whether to play as X or O
+- [x] improve the evaluation algorithm, as for now it is quite basic
+- [ ] create a standalone cpp file to calculate the next move of a given position independently from the GUI (allowing future versions of the algorithm to play some given positions against older versions to see the improvement of the algorithm)
 - [ ] improve the MiniMax algorithm in general, allowing it to perform deeper searches
-- [ ] improve the evaluation algorithm, as for now it is quite basic
+- [ ] allow the player to choose whether to play as X or O
 - [ ] add time limit to moves, picking the best found at that point
+- [ ] improve the evaluation algorithm even more, if possible
 
 ## Bug Fixes
 
@@ -31,6 +39,6 @@ Report one by contacting me in any way.
 
 | Language | files | blank | comment | code |
 | --- | --- | --- | --- | --- |
-| C/C++ Header | 12 | 899 | 416 | 1341 |
-| C++ | 1 | 28 | 22 | 34 |
-| TOTAL | 13 | 927 | 438 | 1375 |
+| C/C++ Header | 13 | 888 | 365 | 1398 |
+| C++ | 2 | 39 | 32 | 37 |
+| TOTAL | 15 | 927 | 397 | 1435 |

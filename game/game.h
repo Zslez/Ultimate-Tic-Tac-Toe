@@ -189,17 +189,17 @@ class Game {
         // tried to make something like the chess.com evaluation bar (💀) but dropped it,
         // nonetheless it was helpful to see in real time how the Bot was evaluating the position to spot bugs
 
-        /*COLORTYPE winningPlayerColor = (lastEval != 0) ? ((lastEval > 0) ? HRED : HBLUE) : AWHITE;
+        COLORTYPE winningPlayerColor = (lastEval != 0) ? ((lastEval > 0) ? HRED : HBLUE) : AWHITE;
         SDL_Color winningPlayerSDLColor = (lastEval != 0) ? ((lastEval > 0) ? SDL_HRED : SDL_HBLUE) : SDL_AWHITE;
 
         std::stringstream ss;
-        ss << std::fixed << std::setprecision(2) << lastEval;
+        ss << std::fixed << std::setprecision(2) << (double) lastEval / 20;
         const char *txt = (std::abs(lastEval) < WINVALUE)
             ? ss.str().c_str()
             : ("W" + std::to_string(MAXSEARCHDEPTH - std::abs(lastEval) + WINVALUE)).c_str();
 
         DisplayTextFromCenter(txt, winningPlayerSDLColor, tinyFont, -boardSize / 2 - 60, 0);
-        DrawRectFromCenter(-boardSize / 2 - 40, 0, borderLineW + 2, boardSize + borderLineW, winningPlayerColor, true);*/
+        DrawRectFromCenter(-boardSize / 2 - 40, 0, borderLineW + 2, boardSize + borderLineW, winningPlayerColor, true);
 
 
         // render everything

@@ -125,32 +125,16 @@ const std::vector<int> boardMap = {
 
 
 
-const std::vector<int> pointsMap = {
-    3, 2, 3, 2, 3, 2, 3, 2, 3,
-    3, 2, 3, 2, 3, 2, 3, 2, 3,
-    3, 2, 3, 2, 3, 2, 3, 2, 3,
-    3, 2, 3, 2, 3, 2, 3, 2, 3,
-    3, 2, 3, 2, 3, 2, 3, 2, 3,
-    3, 2, 3, 2, 3, 2, 3, 2, 3,
-    3, 2, 3, 2, 3, 2, 3, 2, 3,
-    3, 2, 3, 2, 3, 2, 3, 2, 3,
-    3, 2, 3, 2, 3, 2, 3, 2, 3
-};
-
-
-
-const std::vector< std::vector<int> > smallBoardsInverseMap = {
-    {0, 1, 2, 9, 10, 11, 18, 19, 20},
-    {3, 4, 5, 12, 13, 14, 21, 22, 23},
-    {6, 7, 8, 15, 16, 17, 24, 25, 26},
-
-    {27, 28, 29, 36, 37, 38, 45, 46, 47},
-    {30, 31, 32, 39, 40, 41, 48, 49, 50},
-    {33, 34, 35, 42, 43, 44, 51, 52, 53},
-
-    {54, 55, 56, 63, 64, 65, 72, 73, 74},
-    {57, 58, 59, 66, 67, 68, 75, 76, 77},
-    {60, 61, 62, 69, 70, 71, 78, 79, 80}
+std::vector<int> pointsMap = {
+    3, 2, 3, 2, 2, 2, 3, 2, 3,
+    3, 2, 3, 2, 2, 2, 3, 2, 3,
+    3, 2, 3, 2, 2, 2, 3, 2, 3,
+    3, 2, 3, 2, 2, 2, 3, 2, 3,
+    3, 2, 3, 2, 2, 2, 3, 2, 3,
+    3, 2, 3, 2, 2, 2, 3, 2, 3,
+    3, 2, 3, 2, 2, 2, 3, 2, 3,
+    3, 2, 3, 2, 2, 2, 3, 2, 3,
+    3, 2, 3, 2, 2, 2, 3, 2, 3
 };
 
 
@@ -177,19 +161,24 @@ const std::vector< std::vector<int> > winMap = {
 
 
 const std::vector<int> smallBoardPointsBase = {
-    15, 10, 15,
-    10, 20, 10,
-    15, 10, 15
+    20, 15, 20,
+    15, 25, 15,
+    20, 15, 20
 };
+
+
+
+const std::array<int, 3> XWIN = {-1, 0, 0};
+const std::array<int, 3> OWIN = {-1, 1, 1};
 
 
 
 // GAME CONSTANTS
 
 const int INFINITYVALUE = 65536;
-const int MAXSEARCHDEPTH = 7;
-
-const int SMALLBOARDVALUE1 = 10;
-const int SMALLBOARDVALUE2 = 15;
+const int MAXSEARCHDEPTH = 6;
 const int DEPTHVALUE = 20;
 const int WINVALUE = 500;
+
+const int SMALLWINCOMBVALUE = 3;
+const int BIGWINCOMVALUE = 20;

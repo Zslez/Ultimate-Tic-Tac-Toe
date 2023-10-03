@@ -1,25 +1,23 @@
 /**
- * @file main.cpp
+ * @file uttt.cpp
  * @author Cristiano Sansò (cristiano.sanso.04@gmail.com)
  * @brief 
- * @version 1.0
- * @date 2023-03-05
+ * @version 1.1
+ * @date 2023-10-02
  * 
  * @copyright Copyright (c) 2023
- * 
  */
+
 
 
 // include basic modules
 
 #include <iostream>
-#include <fstream>
+#include <iomanip>      // for funtion std::setprecision
+#include <algorithm>    // for funtion std::sort
 #include <string>
 #include <vector>
-#include <regex>
-#include <filesystem>
 #include <thread>
-#include <chrono>
 
 // include SDL
 
