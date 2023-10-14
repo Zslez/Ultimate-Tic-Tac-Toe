@@ -81,20 +81,24 @@ class TempGame {
         if (gameIsOver == 0) return WINVALUE + depth;
         if (gameIsOver == 1) return -WINVALUE - depth;
 
+        // add points based on boards completed and big board win possibilities
+
+        for (std::vector<int> comb : winMap) {
+            int ar = GetBigCombination(comb);
+
+            if (ar == 0) positionJudgement += BIGWINCOMVALUE;
+            else if (ar == 1) positionJudgement -= BIGWINCOMVALUE;
+        }
+
         for (int i = 0; i < 9; i++) {
             if (smallBoards[i] == 0) positionJudgement += smallBoardPointsBase[i];
             else if (smallBoards[i] == 1) positionJudgement -= smallBoardPointsBase[i];
+            /*else {
+                int winChecks = IsBoardWinnable(i);
 
-            // add points based on boards completed and big board win possibilities
-
-            for (std::vector<int> comb : winMap) {
-                std::array<int, 3> ar = {smallBoards[comb[0]], smallBoards[comb[1]], smallBoards[comb[2]]};
-                //std::sort(ar.begin(), ar.end());
-                // I literally don't know why, but commenting out this sort seems to make the bot stronger...
-
-                if (ar == XWIN) positionJudgement += BIGWINCOMVALUE;
-                else if (ar == OWIN) positionJudgement -= BIGWINCOMVALUE;
-            }
+                if (winChecks == 0) positionJudgement += BIGWINCOMVALUE;
+                if (winChecks == 1) positionJudgement -= BIGWINCOMVALUE;
+            }*/
 
 
             // add points based on moves position and possibilities of completing a small board
@@ -119,23 +123,17 @@ class TempGame {
                 }
 
                 if (xcount + ocount < 3) continue;
-                xcount = 0;
-                ocount = 0;
 
 
                 // add points based on how many winning possibilities each side has
 
                 for (std::vector<int> comb : winMap) {
-                    std::array<int, 3> ar = {board[comb[0] + start], board[comb[1] + start], board[comb[2] + start]};
-                    //std::sort(ar.begin(), ar.end());
-                    // I literally don't know why, but commenting out this sort seems to make the bot stronger...
+                    int ar = GetSmallCombination(comb, start);
 
-                    if (ar == XWIN && xcount < SMALLWINCOMBVALUE) {
-                        positionJudgement += SMALLWINCOMBVALUE - xcount;
-                        xcount++;
-                    } else if (ar == OWIN && ocount < SMALLWINCOMBVALUE) {
-                        positionJudgement -= SMALLWINCOMBVALUE - ocount;
-                        ocount++;
+                    if (ar == 0) {
+                        positionJudgement += SMALLWINCOMBVALUE;
+                    } else if (ar == 1) {
+                        positionJudgement -= SMALLWINCOMBVALUE;
                     }
                 }
             }
@@ -147,6 +145,131 @@ class TempGame {
         }*/
 
         return positionJudgement;
+    }
+
+
+
+
+    int GetSmallCombination(std::vector<int> comb, int start) {
+        std::array<int, 3> ar = {board[comb[0] + start], board[comb[1] + start], board[comb[2] + start]};
+
+        if (ar[0] == -1 && ar[1] == ar[2]) return ar[1];
+        if (ar[1] == -1 && ar[0] == ar[2]) return ar[0];
+        if (ar[2] == -1 && ar[0] == ar[1]) return ar[0];
+
+        return -1;
+    }
+
+
+
+
+    int GetBigCombination(std::vector<int> comb) {
+        std::array<int, 3> ar = {smallBoards[comb[0]], smallBoards[comb[1]], smallBoards[comb[2]]};
+
+        if (ar[0] == -1 && ar[1] == ar[2]) {
+            if (IsBoardWinnable(comb[0]) == 1 - ar[1]) return 1 - ar[1];
+            return ar[1];
+        }
+
+        if (ar[1] == -1 && ar[0] == ar[2]) {
+            if (IsBoardWinnable(comb[1]) == 1 - ar[0]) return 1 - ar[0];
+            return ar[1];
+        }
+
+        if (ar[2] == -1 && ar[0] == ar[1]) {
+            if (IsBoardWinnable(comb[2]) == 1 - ar[0]) return 1 - ar[0];
+            return ar[1];
+        }
+
+        return -1;
+    }
+
+
+
+
+    int IsBoardWinnable(int smallBoard) {
+        // -1: no side can win that small board, it's drawn no matter what
+        //  0: X only can win that small board
+        //  1: O only can win that small board
+        //  2: both sides can win that small board
+
+        std::array<bool, 9> fullSmallBoard; // bool because it can only contain 0s and 1s
+        int start = 9 * smallBoard;
+        bool Xcan = false;
+        bool Ocan = false;
+
+        // check if X can win
+
+        for (int i = 0; i < 9; i++) {
+            fullSmallBoard[i] = (board[i + start] == -1) ? 0 : (bool) board[i + start];
+        }
+
+        // maybe doing this with a bitboard would be faster...
+
+        for (std::vector<int> comb : winMap) {
+            if (fullSmallBoard[comb[0]] == 0 && fullSmallBoard[comb[1]] == 0 && fullSmallBoard[comb[2]] == 0) {
+                Xcan = true;
+                break;
+            }
+        }
+
+        // check if O can win
+
+        for (int i = 0; i < 9; i++) {
+            fullSmallBoard[i] = (bool) board[i + start];
+        }
+
+        for (std::vector<int> comb : winMap) {
+            if (fullSmallBoard[comb[0]] == 1 && fullSmallBoard[comb[1]] == 1 && fullSmallBoard[comb[2]] == 1) {
+                Ocan = true;
+                break;
+            }
+        }
+
+        if (Xcan && Ocan) return 2;
+        if (Xcan) return 0;
+        if (Ocan) return 1;
+        return -1;
+    }
+
+
+
+
+    int MiniMaxEndGame(int move, int depth, int alpha, int beta, bool maximisingPlayer) {
+        TempGame tempGame(board, smallBoards, lastMove, player);
+        tempGame.MakeMove(maximisingPlayer, move);
+
+        if (tempGame.gameIsOver != -1) {
+            return (tempGame.gameIsOver == 0) ? (WINVALUE + depth) : (-WINVALUE - depth);
+        }
+
+        std::vector<int> possibleMoves = tempGame.GetAvailableMoves();
+
+        if (possibleMoves.size() == 0) return 0;
+
+        if (maximisingPlayer) {
+            int maxEval = -INFINITYVALUE;
+
+            for (int i : possibleMoves) {
+                maxEval = std::max(maxEval, tempGame.MiniMaxEndGame(i, depth - 1, alpha, beta, !maximisingPlayer));
+                alpha = std::max(alpha, maxEval);
+
+                if (beta <= alpha) break;
+            }
+
+            return maxEval;
+        } else {
+            int minEval = INFINITYVALUE;
+
+            for (int i : possibleMoves) {
+                minEval = std::min(minEval, tempGame.MiniMaxEndGame(i, depth - 1, alpha, beta, !maximisingPlayer));
+                beta = std::min(beta, minEval);
+
+                if (beta <= alpha) break;
+            }
+
+            return minEval;
+        }
     }
 
 
@@ -174,8 +297,8 @@ class TempGame {
         // next MiniMax iteration
         // it loops through each move and calls MiniMax on the newly created instance of TempGame
         // I saved a lot of time already by making this a separate class,
-
         // since the program needs to create million of instances every computer move.
+
         // I believe more time could be saved doing something similar again,
         // either by making this class lighter or not creating new classes at all, rewriting entirely how this MiniMax works
 

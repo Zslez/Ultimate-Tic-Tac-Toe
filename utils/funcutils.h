@@ -60,6 +60,17 @@ std::array<int, 81> StringToBoard(std::stringstream str) {
 
 
 
+void PrintMap(std::vector< std::pair<int, int> > map) {
+    std::cout << "\n" << std::endl;
+
+    for (auto const &i : map) {
+        std::cout << i.first << " " << i.second << std::endl;
+    }
+}
+
+
+
+
 std::string StringToHex(const std::string& input) {
     static const char hex_digits[] = "0123456789ABCDEF";
 

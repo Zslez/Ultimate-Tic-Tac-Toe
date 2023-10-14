@@ -24,8 +24,8 @@ See [here](.\CHANGELOG).
 ## To-Do List
 
 - [x] improve the evaluation algorithm, as for now it is quite basic
+- [ ] speed up the MiniMax algorithm, it needs to perform deeper searches to be better, as it already evaluates the position quite well
 - [ ] create a standalone cpp file to calculate the next move of a given position independently from the GUI (allowing future versions of the algorithm to play some given positions against older versions to see the improvement of the algorithm)
-- [ ] improve the MiniMax algorithm in general, allowing it to perform deeper searches
 - [ ] allow the player to choose whether to play as X or O
 - [ ] add time limit to moves, picking the best found at that point
 - [ ] improve the evaluation algorithm even more, if possible

@@ -47,6 +47,7 @@ class MainMenu {
 
 
     int Play() {
+        endgame = false;
         Game game;
         return game.Run();
     }

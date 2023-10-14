@@ -41,6 +41,10 @@ class Game {
     int player = 1;
     int turn = 0;
 
+    bool soloGame = false; // used to build the .exe that plays against itself
+    double totalTimeX = 0.0;
+    double totalTimeO = 0.0;
+
     bool computerIsMoving = false;
 
     int smallBoardSelected = -1;
@@ -54,6 +58,9 @@ class Game {
     int lastEval = 0;
     int movingTime = 0;
     int currentMove = 0;
+
+    int freeCells = 81;
+    std::vector<int> allAvailableMoves;
 
     // transposition table: {board string, value}
     // poor failed attempt, I sadly couldn't figure out how to make it work properly
@@ -196,7 +203,7 @@ class Game {
         ss << std::fixed << std::setprecision(2) << (double) lastEval / 20;
         const char *txt = (std::abs(lastEval) < WINVALUE)
             ? ss.str().c_str()
-            : ("W" + std::to_string(MAXSEARCHDEPTH - std::abs(lastEval) + WINVALUE)).c_str();
+            : ("W" + std::to_string(((endgame) ? ENDGAMEMOVES : MAXSEARCHDEPTH) - std::abs(lastEval) + WINVALUE)).c_str();
 
         DisplayTextFromCenter(txt, winningPlayerSDLColor, tinyFont, -boardSize / 2 - 60, 0);
         DrawRectFromCenter(-boardSize / 2 - 40, 0, borderLineW + 2, boardSize + borderLineW, winningPlayerColor, true);
@@ -288,12 +295,21 @@ class Game {
 
         // display final text with game results
 
-        if (gameIsOver == player) {
-            DisplayTextFromCenter("Player Won! :)", SDL_AWHITE, smallFont, 0, boardSize / 2 + 40);
-        } else if (gameIsOver == 1 - player) {
-            DisplayTextFromCenter("Computer Won... :(", SDL_AWHITE, smallFont, 0, boardSize / 2 + 40);
-        } else {
-            DisplayTextFromCenter("Draw :|", SDL_AWHITE, smallFont, 0, boardSize / 2 + 40);
+        if (!soloGame)
+            if (gameIsOver == player) {
+                DisplayTextFromCenter("Player Won! :)", SDL_AWHITE, smallFont, 0, boardSize / 2 + 40);
+            } else if (gameIsOver == 1 - player) {
+                DisplayTextFromCenter("Computer Won... :(", SDL_AWHITE, smallFont, 0, boardSize / 2 + 40);
+            } else {
+                DisplayTextFromCenter("Draw :|", SDL_AWHITE, smallFont, 0, boardSize / 2 + 40);
+            }
+        else {
+            if (gameIsOver == 0)
+                DisplayTextFromCenter("X Won", SDL_AWHITE, smallFont, 0, boardSize / 2 + 40);
+            else if (gameIsOver == 1)
+                DisplayTextFromCenter("O Won", SDL_AWHITE, smallFont, 0, boardSize / 2 + 40);
+            else
+                DisplayTextFromCenter("Draw", SDL_AWHITE, smallFont, 0, boardSize / 2 + 40);
         }
 
 
@@ -324,6 +340,12 @@ class Game {
 
     int MouseButtonDown(SDL_Event event) {
         // PLAYER MOVE IS MADE HERE
+        // ========================
+        // ========================
+        // ========================
+        // ========================
+        // ========================
+        // PLAYER MOVE IS MADE HERE
 
         if (event.button.button == SDL_BUTTON_LEFT) {
             if (turn == player && PlayerIsHoveringValidCell() && board[hoveredCell] == -1) {
@@ -331,6 +353,7 @@ class Game {
                 lastMove = hoveredCell;
                 turn = 1 - turn;
                 currentMove++;
+                freeCells--;
 
                 // checks if the game is drawn
 
@@ -353,6 +376,7 @@ class Game {
         // they're exactly the same... read comments on the other one
 
         board[move] = playerThatMoves;
+        allAvailableMoves.erase(std::find(allAvailableMoves.begin(), allAvailableMoves.end(), move));
 
         smallBoardSelected = move % 9;
         smallBoardOfLastMove = move / 9;
@@ -366,14 +390,14 @@ class Game {
             // mark all cells in that board as not selectable
 
             for (int i = smallBoardOfLastMove * 9; i < (smallBoardOfLastMove + 1) * 9; i++) {
-                if (board[i] == -1) board[i] = 2;
+                if (board[i] == -1) {
+                    board[i] = 2;
+                    freeCells--;
+                    allAvailableMoves.erase(std::find(allAvailableMoves.begin(), allAvailableMoves.end(), i));
+                }
             }
         } else if (IsSmallBoardDraw()) {
             smallBoards[smallBoardOfLastMove] = 2;
-
-            for (int i = smallBoardOfLastMove * 9; i < (smallBoardOfLastMove + 1) * 9; i++) {
-                if (board[i] == -1) board[i] = 2;
-            }
         }
 
 
@@ -407,6 +431,47 @@ class Game {
         }
 
         return moves;
+    }
+
+
+
+
+    int MiniMaxEndGame(int move, int depth, int alpha, int beta, bool maximisingPlayer) {
+        std::cout << "\r" << movesChecked++ << "   ";
+        EndGame endGame(board, smallBoards, lastMove, player, allAvailableMoves);
+        endGame.MakeMove(maximisingPlayer, move);
+
+        if (endGame.gameIsOver != -1) {
+            return (endGame.gameIsOver == 0) ? (WINVALUE + depth) : (-WINVALUE - depth);
+        }
+
+        std::vector<int> possibleMoves = endGame.GetAvailableMoves();
+
+        if (possibleMoves.size() == 0) return 0;
+
+        if (maximisingPlayer) {
+            int maxEval = -INFINITYVALUE;
+
+            for (int i : possibleMoves) {
+                maxEval = std::max(maxEval, endGame.MiniMax(i, depth - 1, alpha, beta, !maximisingPlayer));
+                alpha = std::max(alpha, maxEval);
+
+                if (beta <= alpha) break;
+            }
+
+            return maxEval;
+        } else {
+            int minEval = INFINITYVALUE;
+
+            for (int i : possibleMoves) {
+                minEval = std::min(minEval, endGame.MiniMax(i, depth - 1, alpha, beta, !maximisingPlayer));
+                beta = std::min(beta, minEval);
+
+                if (beta <= alpha) break;
+            }
+
+            return minEval;
+        }
     }
 
 
@@ -457,8 +522,14 @@ class Game {
 
 
 
-    void CalculateMoveWOIterativeDeepening() {
-        // this is the old version of the function, before implementing iterative deepening and sorting moves
+    void CalculateMove() {
+        // COMPUTER MOVE IS MADE HERE
+        // ==========================
+        // ==========================
+        // ==========================
+        // ==========================
+        // ==========================
+        // COMPUTER MOVE IS MADE HERE
 
         auto start = std::chrono::system_clock::now();
 
@@ -472,11 +543,7 @@ class Game {
 
             computerIsMoving = false;
             turn = 1 - turn;
-
-            auto end = std::chrono::system_clock::now();
-            std::chrono::duration<double> elapsed_seconds = end-start;
-
-            std::cout << elapsed_seconds.count() << std::endl;
+            if (soloGame) player = 1 - player;
             return;
         }
 
@@ -491,6 +558,97 @@ class Game {
         else bestMoveValue = -INFINITYVALUE;
 
         bestMove = possibleMoves[0];
+        movesChecked = 0;
+
+        for (int i : possibleMoves) {
+            int result;
+            if (endgame) result = MiniMaxEndGame(i, ENDGAMEMOVES, -INFINITYVALUE, INFINITYVALUE, player == 0);
+            else result = MiniMax(i, MAXSEARCHDEPTH, -INFINITYVALUE, INFINITYVALUE, player == 0);
+
+            if (!soloGame) {
+                if (result >= WINVALUE && player == 1) {
+                    bestMove = i;
+                    bestMoveValue = result;
+                    ENDGAMEMOVES = std::abs(result) - WINVALUE - 2;
+                    break;
+                } else if (result <= -WINVALUE && player == 0) {
+                    bestMove = i;
+                    bestMoveValue = result;
+                    ENDGAMEMOVES = std::abs(result) - WINVALUE - 2;
+                    break;
+                }
+            }
+
+            if ((player == 0 && result < bestMoveValue) || (player == 1 && result > bestMoveValue)) {
+                bestMoveValue = result;
+                bestMove = i;
+            }
+        }
+
+        // make move and pass turn
+
+        MakeMove(1 - player, bestMove);
+        lastMove = bestMove;
+        lastEval = bestMoveValue;
+        currentMove++;
+        freeCells--;
+
+        computerIsMoving = false;
+        turn = 1 - turn;
+        if (soloGame) player = 1 - player;
+
+        // print time needed to move
+
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end - start;
+
+        if (player == 1) totalTimeX += elapsed_seconds.count();
+        else totalTimeO += elapsed_seconds.count();
+
+        if (!soloGame) std::cout << elapsed_seconds.count() << std::endl;
+        else std::cout << "\r" << totalTimeX << "  " << totalTimeO << "   ";
+    }
+
+
+
+
+    void CalculateMoveWOEndGame() {
+        // COMPUTER MOVE IS MADE HERE
+        // ==========================
+        // ==========================
+        // ==========================
+        // ==========================
+        // ==========================
+        // COMPUTER MOVE IS MADE HERE
+
+        auto start = std::chrono::system_clock::now();
+
+        // play instantly the first move
+
+        if (currentMove == 0) {
+            MakeMove(1 - player, 0);
+            lastMove = 0;
+            lastEval = 0;
+            currentMove++;
+
+            computerIsMoving = false;
+            turn = 1 - turn;
+            if (soloGame) player = 1 - player;
+            return;
+        }
+
+        // main algorithm
+
+        std::vector<int> possibleMoves = GetAvailableMoves();
+
+        int bestMove;
+        int bestMoveValue;
+
+        if (player == 0) bestMoveValue = INFINITYVALUE;
+        else bestMoveValue = -INFINITYVALUE;
+
+        bestMove = possibleMoves[0];
+        movesChecked = 0;
 
         for (int i : possibleMoves) {
             int result = MiniMax(i, MAXSEARCHDEPTH, -INFINITYVALUE, INFINITYVALUE, player == 0);
@@ -507,23 +665,44 @@ class Game {
         lastMove = bestMove;
         lastEval = bestMoveValue;
         currentMove++;
+        freeCells--;
 
         computerIsMoving = false;
         turn = 1 - turn;
+        if (soloGame) player = 1 - player;
+
+        // print time needed to move
 
         auto end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end-start;
+        std::chrono::duration<double> elapsed_seconds = end - start;
 
-        std::cout << elapsed_seconds.count() << std::endl;
+        if (player == 1) totalTimeX += elapsed_seconds.count();
+        else totalTimeO += elapsed_seconds.count();
+
+        if (!soloGame) std::cout << elapsed_seconds.count() << std::endl;
+        else std::cout << "\r" << totalTimeX << "  " << totalTimeO << "   ";
     }
 
 
 
 
-    void CalculateMove() {
+    void CalculateMoveIterativeDeepening() {
         // to measure improvements, I std::cout the time it took for the computer to move each time
 
         auto start = std::chrono::system_clock::now();
+
+        // play instantly the first move
+
+        if (currentMove == 0) {
+            MakeMove(1 - player, 0);
+            lastMove = 0;
+            lastEval = 0;
+            currentMove++;
+
+            computerIsMoving = false;
+            turn = 1 - turn;
+            return;
+        }
 
         std::vector<int> possibleMoves = GetAvailableMoves();
 
@@ -540,7 +719,7 @@ class Game {
 
         // iterative deepening and move ordering: search with every depth from 1 and order moves
 
-        for (int depth = 0; depth <= MAXSEARCHDEPTH; depth++) {
+        for (int depth = 4; depth <= MAXSEARCHDEPTH; depth++) {
             std::vector< std::pair<int, int> > newMovesMap;
 
             bestMove = possibleMoves[0];
@@ -549,14 +728,19 @@ class Game {
 
             // call MiniMax for each possible move and store evaluations
 
+            int currentMove = 0;
+
             for (auto const &i : movesMap) {
-                int result = MiniMax(i.first, depth, -INFINITYVALUE, INFINITYVALUE, player == 0);
+                int depthIncrement = (depth > 4) ? ((currentMove == 0) ? 1 : -2) : 0;
+                int result = MiniMax(i.first, depth + depthIncrement, -INFINITYVALUE, INFINITYVALUE, player == 0);
                 newMovesMap.push_back({i.first, result});
 
                 if ((player == 0 && result < bestMoveValue) || (player == 1 && result > bestMoveValue)) {
                     bestMoveValue = result;
                     bestMove = i.first;
                 }
+
+                currentMove++;
             }
 
             // sort moves
@@ -569,25 +753,32 @@ class Game {
             } else {
                 std::sort(movesMap.begin(), movesMap.end(), [](auto &left, auto &right) {return left.second > right.second;});
             }
+
+            PrintMap(movesMap);
         }
 
         MakeMove(1 - player, bestMove);
         lastMove = bestMove;
         lastEval = bestMoveValue;
         currentMove++;
+        freeCells--;
 
 
         // pass turn to player
 
         computerIsMoving = false;
         turn = 1 - turn;
+        if (soloGame) player = 1 - player;
 
         // print time needed to move
 
         auto end = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_seconds = end-start;
 
-        std::cout << elapsed_seconds.count() << std::endl;
+        if (player == 1) totalTimeX += elapsed_seconds.count();
+        else totalTimeO += elapsed_seconds.count();
+        if (!soloGame) std::cout << elapsed_seconds.count() << std::endl;
+        else std::cout << "\r" << totalTimeX << "  " << totalTimeO << "   ";
     }
 
 
@@ -653,6 +844,10 @@ class Game {
 
         board.fill(-1);
 
+        for (int i = 0; i < 81; i++) {
+            allAvailableMoves.push_back(i);
+        }
+
         while (true) {
             CLOCK.Tick();
             //std::cout << "\r" << CLOCK.GetFPSWithoutLimit() << "   ";
@@ -666,10 +861,28 @@ class Game {
                 Update();
 
 
+                // checks if the game is drawn
+
+                if (GetAvailableMoves().size() == 0) {
+                    gameIsOver = 2;
+                    continue;
+                } else if (
+                    (freeCells <= ENDGAMEMOVES && smallBoardSelected != -1) ||
+                    (freeCells <= ENDGAMEMOVES - 4)) endgame = true;
+
+
                 // start thread of computer move
 
                 if (turn != player && !computerIsMoving) {
-                    std::thread computerMove(CalculateMoveWOIterativeDeepening, this);
+                    std::thread computerMove;
+
+                    if (soloGame) {
+                        if (player == 0) computerMove = std::thread(CalculateMove, this);
+                        else computerMove = std::thread(CalculateMoveWOEndGame, this);
+                    } else {
+                        computerMove = std::thread(CalculateMove, this);
+                    }
+
                     computerMove.detach();
                     computerIsMoving = true;
                     movingTime = 0;
@@ -682,13 +895,6 @@ class Game {
                     // but the algorithm still has nothing related to the variable
 
                     if (movingTime == maxTime * SECOND) abortSearch = true;
-                }
-
-
-                // checks if the game is drawn
-
-                if (GetAvailableMoves().size() == 0) {
-                    gameIsOver = 2;
                 }
             } else {
                 UpdateOver();

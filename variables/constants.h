@@ -176,9 +176,9 @@ const std::array<int, 3> OWIN = {-1, 1, 1};
 // GAME CONSTANTS
 
 const int INFINITYVALUE = 65536;
-const int MAXSEARCHDEPTH = 6;
-const int DEPTHVALUE = 20;
-const int WINVALUE = 500;
+const int MAXSEARCHDEPTH = 5;
+int ENDGAMEMOVES = 22;
+const int WINVALUE = 1000;
 
-const int SMALLWINCOMBVALUE = 3;
+const int SMALLWINCOMBVALUE = 2;
 const int BIGWINCOMVALUE = 20;

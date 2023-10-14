@@ -45,6 +45,7 @@
 
 // include remaining game classes
 
+#include "game/endgame.h"
 #include "game/tempgame.h"
 #include "game/game.h"
 #include "menus/main_menu.h"
