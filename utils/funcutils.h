@@ -35,23 +35,7 @@ std::string BoardToString(std::array<int, 81> position) {
     std::string result;
 
     for (int i : position) {
-        result += std::to_string(i) + ",";
-    }
-
-    return result;
-}
-
-
-
-
-std::array<int, 81> StringToBoard(std::stringstream str) {
-    std::array<int, 81> result;
-    std::string segment;
-    int count = 0;
-
-    while (std::getline(str, segment, ',')) {
-        result[count] = std::stoi(segment);
-        count++;
+        result += std::to_string(i);
     }
 
     return result;

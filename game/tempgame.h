@@ -235,46 +235,6 @@ class TempGame {
 
 
 
-    int MiniMaxEndGame(int move, int depth, int alpha, int beta, bool maximisingPlayer) {
-        TempGame tempGame(board, smallBoards, lastMove, player);
-        tempGame.MakeMove(maximisingPlayer, move);
-
-        if (tempGame.gameIsOver != -1) {
-            return (tempGame.gameIsOver == 0) ? (WINVALUE + depth) : (-WINVALUE - depth);
-        }
-
-        std::vector<int> possibleMoves = tempGame.GetAvailableMoves();
-
-        if (possibleMoves.size() == 0) return 0;
-
-        if (maximisingPlayer) {
-            int maxEval = -INFINITYVALUE;
-
-            for (int i : possibleMoves) {
-                maxEval = std::max(maxEval, tempGame.MiniMaxEndGame(i, depth - 1, alpha, beta, !maximisingPlayer));
-                alpha = std::max(alpha, maxEval);
-
-                if (beta <= alpha) break;
-            }
-
-            return maxEval;
-        } else {
-            int minEval = INFINITYVALUE;
-
-            for (int i : possibleMoves) {
-                minEval = std::min(minEval, tempGame.MiniMaxEndGame(i, depth - 1, alpha, beta, !maximisingPlayer));
-                beta = std::min(beta, minEval);
-
-                if (beta <= alpha) break;
-            }
-
-            return minEval;
-        }
-    }
-
-
-
-
     int MiniMax(int move, int depth, int alpha, int beta, bool maximisingPlayer) {
         TempGame tempGame(board, smallBoards, lastMove, player);
         tempGame.MakeMove(maximisingPlayer, move);
@@ -283,6 +243,17 @@ class TempGame {
         // if search is over return evaluation
 
         if (depth == 0 || tempGame.gameIsOver != -1) return tempGame.EvaluatePosition(depth);
+
+
+        bool tablecondition = tempGame.smallBoardSelected == -1;
+
+        /*if (tablecondition) {
+            std::unordered_map<std::array<int, 81>, int, ArrayHasher>::iterator it = smallTranspTable.find(board);
+
+            if (it != smallTranspTable.end()) {
+                return it->second;
+            }
+        }*/
 
 
         // get available moves
@@ -312,6 +283,8 @@ class TempGame {
                 if (beta <= alpha) break;
             }
 
+            //if (tablecondition) smallTranspTable[board] = maxEval;
+
             return maxEval;
         } else {
             int minEval = INFINITYVALUE;
@@ -322,6 +295,8 @@ class TempGame {
 
                 if (beta <= alpha) break;
             }
+
+            //if (tablecondition) smallTranspTable[board] = minEval;
 
             return minEval;
         }

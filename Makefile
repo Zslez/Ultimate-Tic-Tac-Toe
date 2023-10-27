@@ -75,3 +75,7 @@ distribute: compile
 
 cloc:
 	@cloc --exclude-dir=build,src,saves,dist,.vscode . --exclude-lang=Python,Markdown,make,XML,HTML
+
+
+test:
+	@cls && g++ -o out test.cpp && .\out

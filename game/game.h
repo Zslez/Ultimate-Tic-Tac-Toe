@@ -60,7 +60,6 @@ class Game {
     int currentMove = 0;
 
     int freeCells = 81;
-    std::vector<int> allAvailableMoves;
 
     // transposition table: {board string, value}
     // poor failed attempt, I sadly couldn't figure out how to make it work properly
@@ -188,7 +187,8 @@ class Game {
         // display text if computer is choosing its move
 
         if (turn != player) {
-            DisplayTextFromCenter("Computer is choosing a move...", SDL_AWHITE, smallFont, 0, boardSize / 2 + 40);
+            if (!endgame) DisplayTextFromCenter("Computer is choosing a move...", SDL_AWHITE, smallFont, 0, boardSize / 2 + 40);
+            else DisplayTextFromCenter("End - Computer is choosing a move...", SDL_AWHITE, smallFont, 0, boardSize / 2 + 40);
         }
 
 
@@ -200,10 +200,10 @@ class Game {
         SDL_Color winningPlayerSDLColor = (lastEval != 0) ? ((lastEval > 0) ? SDL_HRED : SDL_HBLUE) : SDL_AWHITE;
 
         std::stringstream ss;
-        ss << std::fixed << std::setprecision(2) << (double) lastEval / 20;
+        ss << std::fixed << std::setprecision(1) << (double) lastEval / 10;
         const char *txt = (std::abs(lastEval) < WINVALUE)
             ? ss.str().c_str()
-            : ("W" + std::to_string(((endgame) ? ENDGAMEMOVES : MAXSEARCHDEPTH) - std::abs(lastEval) + WINVALUE)).c_str();
+            : ("W" + std::to_string(((endgame) ? ENDGAMEMOVESCONST : MAXSEARCHDEPTH) - std::abs(lastEval) + WINVALUE)).c_str();
 
         DisplayTextFromCenter(txt, winningPlayerSDLColor, tinyFont, -boardSize / 2 - 60, 0);
         DrawRectFromCenter(-boardSize / 2 - 40, 0, borderLineW + 2, boardSize + borderLineW, winningPlayerColor, true);
@@ -376,7 +376,6 @@ class Game {
         // they're exactly the same... read comments on the other one
 
         board[move] = playerThatMoves;
-        allAvailableMoves.erase(std::find(allAvailableMoves.begin(), allAvailableMoves.end(), move));
 
         smallBoardSelected = move % 9;
         smallBoardOfLastMove = move / 9;
@@ -393,7 +392,6 @@ class Game {
                 if (board[i] == -1) {
                     board[i] = 2;
                     freeCells--;
-                    allAvailableMoves.erase(std::find(allAvailableMoves.begin(), allAvailableMoves.end(), i));
                 }
             }
         } else if (IsSmallBoardDraw()) {
@@ -438,8 +436,7 @@ class Game {
 
     int MiniMaxEndGame(int move, int depth, int alpha, int beta, bool maximisingPlayer) {
         std::cout << "\r" << movesChecked++ << "   ";
-        EndGame endGame(board, smallBoards, lastMove, player, allAvailableMoves);
-        endGame.MakeMove(maximisingPlayer, move);
+        EndGame endGame(board, smallBoards, lastMove, maximisingPlayer, move);
 
         if (endGame.gameIsOver != -1) {
             return (endGame.gameIsOver == 0) ? (WINVALUE + depth) : (-WINVALUE - depth);
@@ -592,6 +589,8 @@ class Game {
         lastEval = bestMoveValue;
         currentMove++;
         freeCells--;
+
+        //smallTranspTable.clear();
 
         computerIsMoving = false;
         turn = 1 - turn;
@@ -844,15 +843,12 @@ class Game {
 
         board.fill(-1);
 
-        for (int i = 0; i < 81; i++) {
-            allAvailableMoves.push_back(i);
-        }
+        transpositionTable.clear();
 
         while (true) {
             CLOCK.Tick();
             //std::cout << "\r" << CLOCK.GetFPSWithoutLimit() << "   ";
             //std::cout << "\r" << FormatTime(timeElapsed) << "    ";
-            //std::cout << "\r" << lastMove << "    ";
 
 
             // update screen
